@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NoveCard — Flashcards</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="Nove.png">
+<link rel="apple-touch-icon" href="Nove.png">
+</head>
+<body>
+
+<div id="app">
+
+  <!-- ============ HOME ============ -->
+  <section id="view-home" class="view">
+    <header class="topbar">
+      <label class="search-wrap">
+        <svg class="icon" viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="2"/><line x1="21" y1="21" x2="16.65" y2="16.65" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+        <input type="text" id="search-input" placeholder="Search flashcards" autocomplete="off">
+      </label>
+    </header>
+
+    <div class="crumb-row" id="crumb-row">
+      <div class="crumb-left" id="crumb-left"></div>
+      <button type="button" class="select-toggle" id="home-select-toggle" title="Select">
+        <svg class="icon" viewBox="0 0 24 24" fill="none"><rect x="4" y="4" width="7" height="7" rx="1.6" stroke="currentColor" stroke-width="2"/><rect x="13" y="4" width="7" height="7" rx="1.6" stroke="currentColor" stroke-width="2"/><rect x="4" y="13" width="7" height="7" rx="1.6" stroke="currentColor" stroke-width="2"/><path d="M14.2 16.6l1.8 1.8L19.8 14.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+    </div>
+
+    <div class="view-body">
+      <div class="deck-grid" id="deck-grid"></div>
+      <p class="empty-state" id="home-empty">No flashcards yet&hellip;</p>
+    </div>
+
+    <div class="selection-toolbar hidden" id="home-selection-toolbar">
+      <button type="button" data-action="cancel">Cancel</button>
+      <button type="button" data-action="move">Move</button>
+      <button type="button" data-action="select-all">Select all</button>
+      <button type="button" class="danger" data-action="delete">Delete</button>
+    </div>
+  </section>
+
+  <!-- ============ FAVORITES ============ -->
+  <section id="view-favorites" class="view hidden">
+    <header class="topbar topbar--simple">
+      <h1 class="view-title">Favorites</h1>
+    </header>
+    <div class="view-body">
+      <div class="deck-grid" id="fav-grid"></div>
+      <p class="empty-state" id="fav-empty">No Favorite flashcards yet</p>
+    </div>
+  </section>
+
+  <!-- ============ TRASH ============ -->
+  <section id="view-trash" class="view hidden">
+    <header class="topbar topbar--simple">
+      <h1 class="view-title">Trash</h1>
+      <button type="button" class="select-toggle" id="trash-select-toggle" title="Select">
+        <svg class="icon" viewBox="0 0 24 24" fill="none"><rect x="4" y="4" width="7" height="7" rx="1.6" stroke="currentColor" stroke-width="2"/><rect x="13" y="4" width="7" height="7" rx="1.6" stroke="currentColor" stroke-width="2"/><rect x="4" y="13" width="7" height="7" rx="1.6" stroke="currentColor" stroke-width="2"/><path d="M14.2 16.6l1.8 1.8L19.8 14.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+    </header>
+    <div class="view-body">
+      <div class="deck-grid deck-grid--trash" id="trash-grid"></div>
+      <p class="empty-state" id="trash-empty">Trash is empty</p>
+    </div>
+    <div class="selection-toolbar hidden" id="trash-selection-toolbar">
+      <button type="button" data-action="cancel">Cancel</button>
+      <button type="button" data-action="restore">Restore</button>
+      <button type="button" class="danger" data-action="delete-forever">Delete forever</button>
+    </div>
+  </section>
+
+  <!-- ============ BOTTOM NAV + FAB ============ -->
+  <nav class="bottom-nav" id="bottom-nav">
+    <button class="nav-btn active" data-view="home" title="Home">
+      <svg class="icon" viewBox="0 0 24 24" fill="none"><path d="M4 11.5 12 4l8 7.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M6 10v9a1 1 0 0 0 1 1h4v-6h2v6h4a1 1 0 0 0 1-1v-9" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>
+    </button>
+    <button class="nav-btn" data-view="favorites" title="Favorites">
+      <svg class="icon" viewBox="0 0 24 24" fill="none"><path d="M12 4.5l2.4 4.9 5.4.8-3.9 3.8.9 5.4-4.8-2.5-4.8 2.5.9-5.4-3.9-3.8 5.4-.8L12 4.5Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>
+    </button>
+    <button class="nav-btn" data-view="trash" title="Trash">
+      <svg class="icon" viewBox="0 0 24 24" fill="none"><path d="M4 7h16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" stroke="currentColor" stroke-width="2"/><path d="M6 7l1 13a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1l1-13" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M10 11v6M14 11v6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+    </button>
+  </nav>
+
+  <button class="fab" id="fab" title="Add">
+    <svg class="icon" viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg>
+  </button>
+
+  <div class="popover-scrim hidden" id="scrim"></div>
+
+  <div class="popover fab-menu hidden" id="fab-menu">
+    <button id="menu-new-flashcard" class="popover-item">
+      <svg class="icon" viewBox="0 0 24 24" fill="none"><rect x="4" y="4" width="16" height="16" rx="2" stroke="currentColor" stroke-width="2"/><path d="M15 4v4a1 1 0 0 0 1 1h4" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>
+      <span>New Flashcard</span>
+    </button>
+    <button id="menu-new-folder" class="popover-item">
+      <svg class="icon" viewBox="0 0 24 24" fill="none"><path d="M3 8.2C3 7.07989 3 6.51984 3.21799 6.09202C3.40973 5.71569 3.71569 5.40973 4.09202 5.21799C4.51984 5 5.0799 5 6.2 5H9.67452C10.1637 5 10.4083 5 10.6385 5.05526C10.8425 5.10425 11.0376 5.18506 11.2166 5.29472C11.4184 5.4184 11.5914 5.59135 11.9373 5.93726L12.0627 6.06274C12.4086 6.40865 12.5816 6.5816 12.7834 6.70528C12.9624 6.81494 13.1575 6.89575 13.3615 6.94474C13.5917 7 13.8363 7 14.3255 7H17.8C18.9201 7 19.4802 7 19.908 7.21799C20.2843 7.40973 20.5903 7.71569 20.782 8.09202C21 8.51984 21 9.0799 21 10.2V15.8C21 16.9201 21 17.4802 20.782 17.908C20.5903 18.2843 20.2843 18.5903 19.908 18.782C19.4802 19 18.9201 19 17.8 19H6.2C5.07989 19 4.51984 19 4.09202 18.782C3.71569 18.5903 3.40973 18.2843 3.21799 17.908C3 17.4802 3 16.9201 3 15.8V8.2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <span>New Folder</span>
+    </button>
+  </div>
+
+  <!-- ============ DECK OPTIONS POPOVER ============ -->
+  <div class="popover deck-menu hidden" id="deck-menu">
+    <button class="popover-item" data-action="color">
+      <svg class="icon" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="8" stroke="currentColor" stroke-width="2"/><circle cx="9" cy="10" r="1.2" fill="currentColor"/><circle cx="12" cy="8" r="1.2" fill="currentColor"/><circle cx="15" cy="10" r="1.2" fill="currentColor"/><circle cx="10.5" cy="14" r="1.2" fill="currentColor"/></svg>
+      <span>Color</span>
+    </button>
+    <button class="popover-item" data-action="rename">
+      <svg class="icon" viewBox="0 0 24 24" fill="none"><path d="M4 20h4l11-11-4-4L4 16v4Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>
+      <span>Rename</span>
+    </button>
+    <button class="popover-item" data-action="favorite">
+      <svg class="icon" viewBox="0 0 24 24" fill="none"><path d="M12 4.5l2.4 4.9 5.4.8-3.9 3.8.9 5.4-4.8-2.5-4.8 2.5.9-5.4-3.9-3.8 5.4-.8L12 4.5Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>
+      <span data-favorite-label>Favorite</span>
+    </button>
+    <button class="popover-item" data-action="share" disabled>
+      <svg class="icon" viewBox="0 0 24 24" fill="none"><circle cx="6" cy="12" r="2.2" stroke="currentColor" stroke-width="2"/><circle cx="17" cy="6" r="2.2" stroke="currentColor" stroke-width="2"/><circle cx="17" cy="18" r="2.2" stroke="currentColor" stroke-width="2"/><path d="M8 11l7-4M8 13l7 4" stroke="currentColor" stroke-width="2"/></svg>
+      <span>Share</span>
+    </button>
+    <button class="popover-item" data-action="move">
+      <svg class="icon" viewBox="0 0 24 24" fill="none"><path d="M4 12h14M13 7l5 5-5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <span>Move</span>
+    </button>
+    <button class="popover-item danger" data-action="delete">
+      <svg class="icon" viewBox="0 0 24 24" fill="none"><path d="M4 7h16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" stroke="currentColor" stroke-width="2"/><path d="M6 7l1 13a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1l1-13" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>
+      <span>Delete</span>
+    </button>
+  </div>
+
+  <!-- ============ FOLDER OPTIONS POPOVER ============ -->
+  <div class="popover deck-menu hidden" id="folder-menu">
+    <button class="popover-item" data-action="color">
+      <svg class="icon" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="8" stroke="currentColor" stroke-width="2"/><circle cx="9" cy="10" r="1.2" fill="currentColor"/><circle cx="12" cy="8" r="1.2" fill="currentColor"/><circle cx="15" cy="10" r="1.2" fill="currentColor"/><circle cx="10.5" cy="14" r="1.2" fill="currentColor"/></svg>
+      <span>Color</span>
+    </button>
+    <button class="popover-item" data-action="rename">
+      <svg class="icon" viewBox="0 0 24 24" fill="none"><path d="M4 20h4l11-11-4-4L4 16v4Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>
+      <span>Rename</span>
+    </button>
+    <button class="popover-item" data-action="favorite">
+      <svg class="icon" viewBox="0 0 24 24" fill="none"><path d="M12 4.5l2.4 4.9 5.4.8-3.9 3.8.9 5.4-4.8-2.5-4.8 2.5.9-5.4-3.9-3.8 5.4-.8L12 4.5Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>
+      <span data-favorite-label>Favorite</span>
+    </button>
+    <button class="popover-item danger" data-action="delete">
+      <svg class="icon" viewBox="0 0 24 24" fill="none"><path d="M4 7h16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" stroke="currentColor" stroke-width="2"/><path d="M6 7l1 13a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1l1-13" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>
+      <span>Delete</span>
+    </button>
+  </div>
+
+  <!-- ============ MOVE TO FOLDER POPOVER ============ -->
+  <div class="popover move-menu hidden" id="move-menu">
+    <div class="move-menu-title">Move to</div>
+    <div class="move-list" id="move-list"></div>
+  </div>
+
+  <!-- ============ TRASH OPTIONS POPOVER ============ -->
+  <div class="popover trash-menu hidden" id="trash-menu">
+    <button class="popover-item" data-action="restore">
+      <svg class="icon" viewBox="0 0 24 24" fill="none"><path d="M4 8c2-3 5-4.5 8-4.5a8.5 8.5 0 1 1-8.3 6.7" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M8 8H4V4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <span>Restore</span>
+    </button>
+    <button class="popover-item danger" data-action="delete-forever">
+      <svg class="icon" viewBox="0 0 24 24" fill="none"><path d="M4 7h16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" stroke="currentColor" stroke-width="2"/><path d="M6 7l1 13a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1l1-13" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M10 11v6M14 11v6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+      <span>Delete forever</span>
+    </button>
+  </div>
+
+  <!-- ============ COLOR PICKER POPOVER ============ -->
+  <div class="popover color-picker hidden" id="color-picker">
+    <div class="swatch-row" id="swatch-row"></div>
+  </div>
+
+  <!-- ============ RENAME POPOVER ============ -->
+  <div class="popover rename-box hidden" id="rename-box">
+    <input type="text" id="rename-input" maxlength="40">
+    <button id="rename-cancel" class="mini-btn">Cancel</button>
+    <button id="rename-confirm" class="mini-btn primary">Save</button>
+  </div>
+
+  <!-- ============ STUDY VIEW ============ -->
+  <section id="view-study" class="view hidden">
+    <header class="study-topbar">
+      <button class="icon-btn" id="study-back" title="Back">
+        <svg class="icon" viewBox="0 0 24 24" fill="none"><path d="M15 5l-7 7 7 7" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+      <span class="study-deck-name" id="study-deck-name"></span>
+      <button class="icon-btn" id="study-edit" title="Edit">
+        <svg class="icon" viewBox="0 0 24 24" fill="none"><path d="M4 20h4l11-11-4-4L4 16v4Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>
+      </button>
+    </header>
+
+    <div class="study-stage">
+      <div class="study-card" id="study-card">
+        <div class="study-card-inner" id="study-card-inner">
+          <div class="study-card-face study-card-face--front">
+            <div class="study-side" id="study-question-side"></div>
+          </div>
+          <div class="study-card-face study-card-face--back">
+            <div class="study-side study-side--answer" id="study-answer-side"></div>
+          </div>
+        </div>
+      </div>
+      <p class="study-hint" id="study-hint">Tap the card to reveal the answer</p>
+    </div>
+
+    <div class="study-nav">
+      <button class="round-btn" id="study-prev" title="Previous">
+        <svg class="icon" viewBox="0 0 24 24" fill="none"><path d="M15 5l-7 7 7 7" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+      <span class="study-counter" id="study-counter"></span>
+      <button class="round-btn" id="study-next" title="Next">
+        <svg class="icon" viewBox="0 0 24 24" fill="none"><path d="M9 5l7 7-7 7" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+    </div>
+  </section>
+
+  <!-- ============ EDITOR VIEW ============ -->
+  <section id="view-editor" class="view hidden">
+    <header class="editor-topbar">
+      <button class="icon-btn" id="editor-prev" title="Previous flashcard">
+        <svg class="icon" viewBox="0 0 24 24" fill="none"><path d="M15 5l-7 7 7 7" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+      <button class="icon-btn danger" id="editor-delete-q" title="Delete this question">
+        <svg class="icon" viewBox="0 0 24 24" fill="none"><path d="M4 7h16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" stroke="currentColor" stroke-width="2"/><path d="M6 7l1 13a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1l1-13" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>
+      </button>
+
+      <div class="toolbar" id="toolbar">
+        <button class="tool-btn" data-tool="undo" title="Undo">
+          <svg class="icon" viewBox="0 0 24 24" fill="none"><path d="M8 8H4V4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 8c2-3 5-4.5 8-4.5a8.5 8.5 0 1 1-7 13.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+        </button>
+        <button class="tool-btn" data-tool="redo" title="Redo">
+          <svg class="icon" viewBox="0 0 24 24" fill="none"><path d="M16 8h4V4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M20 8c-2-3-5-4.5-8-4.5a8.5 8.5 0 1 0 7 13.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+        </button>
+        <span class="tool-sep"></span>
+        <button class="tool-btn" data-tool="text" title="Add text">
+          <svg class="icon" viewBox="0 0 24 24" fill="none"><rect x="4" y="4" width="16" height="16" rx="2" stroke="currentColor" stroke-width="2"/><path d="M8 9h8M12 9v6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+        </button>
+        <button class="tool-btn" data-tool="image" title="Add image">
+          <svg class="icon" viewBox="0 0 24 24" fill="none"><rect x="4" y="5" width="16" height="14" rx="2" stroke="currentColor" stroke-width="2"/><circle cx="9" cy="10" r="1.4" stroke="currentColor" stroke-width="1.6"/><path d="M5 16l4.5-4 3 3L17 10l2 2.5" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>
+        </button>
+      </div>
+
+      <span class="q-counter" id="q-counter">Q1</span>
+      <button class="icon-btn" id="editor-next" title="Next / new flashcard">
+        <svg class="icon" viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>
+      </button>
+    </header>
+
+    <div class="editor-body" id="editor-body">
+      <div class="editor-pane" id="pane-question" data-side="question">
+        <div class="pane-placeholder">Question&hellip;</div>
+      </div>
+      <hr class="dashed-divider" id="editor-divider">
+      <div class="editor-pane" id="pane-answer" data-side="answer">
+        <div class="pane-placeholder">Answer&hellip;</div>
+      </div>
+    </div>
+
+    <footer class="editor-footer">
+      <button class="round-btn" id="editor-cancel" title="Cancel">
+        <svg class="icon" viewBox="0 0 24 24" fill="none"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>
+      </button>
+      <button class="round-btn primary" id="editor-save" title="Save">
+        <svg class="icon" viewBox="0 0 24 24" fill="none"><path d="M5 12.5l4.5 4.5L19 7.5" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+    </footer>
+  </section>
+
+  <input type="file" id="file-input" accept="image/*" hidden>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>
