@@ -63,15 +63,24 @@ svg.icon{ width:22px; height:22px; display:block; }
   .view-body{ padding-left:40px; padding-right:40px; }
   .deck-grid{
     grid-template-columns:repeat(auto-fill, minmax(150px,1fr));
-    max-width:1400px;
+    max-width:900px;
     margin-left:auto;
     margin-right:auto;
   }
   .topbar, .topbar--simple, .study-topbar{
-    max-width:1400px;
+    max-width:900px;
     margin-left:auto;
     margin-right:auto;
     width:100%;
+  }
+}
+/* Large desktop screens get the roomier, wider layout; tablets (above)
+   stay contained so the search bar and deck grid don't stretch thin
+   with lots of empty space. */
+@media (min-width: 1280px){
+  .deck-grid,
+  .topbar, .topbar--simple, .study-topbar{
+    max-width:1400px;
   }
 }
 
@@ -106,7 +115,10 @@ svg.icon{ width:22px; height:22px; display:block; }
   padding:6px 20px 4px;
 }
 @media (min-width: 760px){
-  .crumb-row{ max-width:1400px; margin-left:auto; margin-right:auto; width:100%; }
+  .crumb-row{ max-width:900px; margin-left:auto; margin-right:auto; width:100%; }
+}
+@media (min-width: 1280px){
+  .crumb-row{ max-width:1400px; }
 }
 .crumb-left{
   display:flex;
@@ -580,8 +592,18 @@ svg.icon{ width:22px; height:22px; display:block; }
   display:flex;
   flex-direction:column;
   justify-content:center;
+  position:relative;
   backface-visibility:hidden;
   -webkit-backface-visibility:hidden;
+}
+.study-side-label{
+  position:absolute;
+  top:14px; left:18px;
+  font-size:11.5px;
+  font-weight:700;
+  letter-spacing:.04em;
+  text-transform:uppercase;
+  color:var(--ink-faint);
 }
 .study-card-face--back{ transform:rotateY(180deg); }
 .study-side{
@@ -602,13 +624,8 @@ svg.icon{ width:22px; height:22px; display:block; }
   margin:22px 0;
   width:100%;
 }
-.study-hint{
-  color:var(--ink-faint);
-  font-size:13px;
-}
 .study-nav{
   display:flex; align-items:center; justify-content:center; gap:26px;
-  padding:0 0 30px;
 }
 .round-btn{
   width:52px; height:52px;
@@ -636,7 +653,6 @@ svg.icon{ width:22px; height:22px; display:block; }
   align-items:center;
   gap:8px;
   padding:14px 12px;
-  border-bottom:1px solid var(--line);
   flex-wrap:wrap;
   position:relative;
   z-index:1;
@@ -686,6 +702,7 @@ svg.icon{ width:22px; height:22px; display:block; }
   flex:1;
   display:flex;
   flex-direction:column;
+  gap:10px;
   overflow:hidden;
 }
 .editor-pane{
@@ -695,24 +712,29 @@ svg.icon{ width:22px; height:22px; display:block; }
   overflow:auto;
   min-height:160px;
 }
+/* dashed square outlining the question / answer work area */
+.editor-pane::before{
+  content:"";
+  position:absolute;
+  inset:14px;
+  border:1.5px dashed var(--line);
+  border-radius:12px;
+  pointer-events:none;
+}
 .editor-pane .pane-placeholder{
   position:absolute;
-  top:26px; left:22px; right:22px;
+  top:50%; left:22px; right:22px;
+  transform:translateY(-50%);
   text-align:center;
   color:var(--ink-faint);
   font-size:15px;
   pointer-events:none;
 }
 .editor-pane.has-elements .pane-placeholder{ display:none; }
-#editor-divider{ margin:0; flex:none; }
+#editor-divider{ display:none; }
 
 @media (min-width:760px){
   .editor-body{ flex-direction:row; }
-  #editor-divider{
-    border:none;
-    border-left:1.5px dashed var(--line);
-    width:0; margin:0;
-  }
 }
 
 .editor-footer{
