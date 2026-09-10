@@ -888,7 +888,6 @@ if ('serviceWorker' in navigator) {
       void inner.offsetHeight;
       inner.classList.remove("no-anim");
     }
-    $("#study-hint").textContent = study.revealed ? "Tap the card to hide the answer" : "Tap the card to reveal the answer";
     $("#study-counter").textContent = "Q" + (study.cardIndex+1) + " / " + deck.cards.length;
     $("#study-prev").disabled = study.cardIndex === 0;
     $("#study-next").disabled = study.cardIndex === deck.cards.length - 1;
