@@ -628,6 +628,7 @@ if ('serviceWorker' in navigator) {
       }
       function onMove(ev){
         const dx = ev.clientX - startX, dy = ev.clientY - startY;
+        if (ev.pointerType !== "touch" && !(ev.buttons & 1)) return; // pen/mouse hovering, not touching
         if (!dragging){
           if (Math.abs(dx) < 8 && Math.abs(dy) < 8) return;
           dragging = true;
@@ -1109,6 +1110,7 @@ if ('serviceWorker' in navigator) {
     wrap.style.left = elem.x + "px";
     wrap.style.top = elem.y + "px";
     wrap.style.transform = "rotate(" + (elem.rotation||0) + "deg)";
+    if (elem.type === "text" && elem.w) wrap.style.width = elem.w + "px";
     if (elem.id === ed.selectedId) wrap.classList.add("selected");
 
     let contentNode;
@@ -1148,20 +1150,18 @@ if ('serviceWorker' in navigator) {
       wrap.appendChild(contentNode);
     }
 
-    wrap.addEventListener("mousedown", (e)=> startDrag(e, elem, side, wrap, contentNode));
-    wrap.addEventListener("touchstart", (e)=> startDrag(e, elem, side, wrap, contentNode), {passive:false});
+    wrap.addEventListener("pointerdown", (e)=> startDrag(e, elem, side, wrap, contentNode));
     wrap.addEventListener("click", (e)=>{ e.stopPropagation(); suppressNextPaneClick = false; selectElement(elem.id, side); });
 
     if (elem.id === ed.selectedId){
       wrap.appendChild(buildElementToolbar(elem, side));
-      if (elem.type === "image"){
-        ["nw","ne","sw","se"].forEach(corner=>{
-          const h = el("div","resize-handle " + corner);
-          h.addEventListener("mousedown", (e)=> startResize(e, elem, side, corner));
-          h.addEventListener("touchstart", (e)=> startResize(e, elem, side, corner), {passive:false});
-          wrap.appendChild(h);
-        });
-      }
+      // images: 4 corner handles. text: 2 side handles (left/right) to change width.
+      const corners = elem.type === "image" ? ["nw","ne","sw","se"] : ["w","e"];
+      corners.forEach(corner=>{
+        const h = el("div","resize-handle " + corner);
+        h.addEventListener("pointerdown", (e)=> startResize(e, elem, side, corner, wrap));
+        wrap.appendChild(h);
+      });
     }
     return wrap;
   }
@@ -1267,19 +1267,23 @@ if ('serviceWorker' in navigator) {
     if (laneLocked(side)) return;
     if (e.target.closest(".el-toolbar") || e.target.closest(".resize-handle")) return; // taps on the floating toolbar/handles must not start a drag
     if (elem.type === "text" && contentNode.isContentEditable) return; // let native caret/selection work while editing
+    // A hovering pen/mouse (no contact) must never grab or move anything.
+    if (e.pointerType !== "touch" && !(e.buttons & 1)) return;
     e.preventDefault();
-    const point = e.touches ? e.touches[0] : e;
-    dragCtx = { elem, side, startX: point.clientX, startY: point.clientY, origX: elem.x, origY: elem.y, moved:false };
+    const point = e;
+    dragCtx = { elem, side, pointerId: e.pointerId, startX: point.clientX, startY: point.clientY, origX: elem.x, origY: elem.y, moved:false };
     selectElement(elem.id, side);
-    window.addEventListener("mousemove", onDragMove);
-    window.addEventListener("mouseup", onDragEnd);
-    window.addEventListener("touchmove", onDragMove, {passive:false});
-    window.addEventListener("touchend", onDragEnd);
+    window.addEventListener("pointermove", onDragMove, {passive:false});
+    window.addEventListener("pointerup", onDragEnd);
+    window.addEventListener("pointercancel", onDragEnd);
   }
   function onDragMove(e){
     if (!dragCtx) return;
+    if (e.pointerId !== dragCtx.pointerId) return;
+    // pen lifted off the screen / no contact: stop dragging
+    if (e.pointerType !== "touch" && !(e.buttons & 1)){ onDragEnd(); return; }
     e.preventDefault();
-    const point = e.touches ? e.touches[0] : e;
+    const point = e;
     const dx = point.clientX - dragCtx.startX;
     const dy = point.clientY - dragCtx.startY;
     if (Math.abs(dx)>2 || Math.abs(dy)>2) dragCtx.moved = true;
@@ -1292,50 +1296,52 @@ if ('serviceWorker' in navigator) {
   function onDragEnd(){
     if (dragCtx && dragCtx.moved) pushHistory();
     dragCtx = null;
-    window.removeEventListener("mousemove", onDragMove);
-    window.removeEventListener("mouseup", onDragEnd);
-    window.removeEventListener("touchmove", onDragMove);
-    window.removeEventListener("touchend", onDragEnd);
+    window.removeEventListener("pointermove", onDragMove);
+    window.removeEventListener("pointerup", onDragEnd);
+    window.removeEventListener("pointercancel", onDragEnd);
   }
 
   /* resizing (images only) */
   let resizeCtx = null;
-  function startResize(e, elem, side, corner){
+  function startResize(e, elem, side, corner, wrap){
+    if (e.pointerType !== "touch" && !(e.buttons & 1)) return; // ignore hover
     e.preventDefault(); e.stopPropagation();
-    const point = e.touches ? e.touches[0] : e;
-    resizeCtx = { elem, side, corner, startX: point.clientX, startY: point.clientY, origW: elem.w, origH: elem.h, origX: elem.x, origY: elem.y };
-    window.addEventListener("mousemove", onResizeMove);
-    window.addEventListener("mouseup", onResizeEnd);
-    window.addEventListener("touchmove", onResizeMove, {passive:false});
-    window.addEventListener("touchend", onResizeEnd);
+    const origW = elem.type === "text" ? (elem.w || (wrap ? wrap.offsetWidth : 120)) : elem.w;
+    resizeCtx = { elem, side, corner, pointerId: e.pointerId, startX: e.clientX, startY: e.clientY, origW: origW, origH: elem.h, origX: elem.x, origY: elem.y };
+    window.addEventListener("pointermove", onResizeMove, {passive:false});
+    window.addEventListener("pointerup", onResizeEnd);
+    window.addEventListener("pointercancel", onResizeEnd);
   }
   function onResizeMove(e){
     if (!resizeCtx) return;
+    if (e.pointerId !== resizeCtx.pointerId) return;
+    if (e.pointerType !== "touch" && !(e.buttons & 1)){ onResizeEnd(); return; }
     e.preventDefault();
-    const point = e.touches ? e.touches[0] : e;
-    const dx = point.clientX - resizeCtx.startX;
-    const dy = point.clientY - resizeCtx.startY;
+    const dx = e.clientX - resizeCtx.startX;
+    const dy = e.clientY - resizeCtx.startY;
     const { elem, corner } = resizeCtx;
     let w = resizeCtx.origW, h = resizeCtx.origH, x = resizeCtx.origX, y = resizeCtx.origY;
     if (corner.includes("e")) w = Math.max(40, resizeCtx.origW + dx);
     if (corner.includes("s")) h = Math.max(40, resizeCtx.origH + dy);
     if (corner.includes("w")){ w = Math.max(40, resizeCtx.origW - dx); x = resizeCtx.origX + dx; }
     if (corner.includes("n")){ h = Math.max(40, resizeCtx.origH - dy); y = resizeCtx.origY + dy; }
-    elem.w = w; elem.h = h; elem.x = x; elem.y = y;
+    const isText = elem.type === "text";
+    if (isText) x = Math.max(0, x);
+    elem.w = w; elem.x = x;
+    if (!isText){ elem.h = h; elem.y = y; }
     const pane = $("#pane-" + resizeCtx.side);
     const node = pane.querySelector('.el[data-id="'+elem.id+'"]');
     if (node){
-      node.style.width = w+"px"; node.style.height = h+"px";
-      node.style.left = x+"px"; node.style.top = y+"px";
+      node.style.width = w+"px"; node.style.left = x+"px";
+      if (!isText){ node.style.height = h+"px"; node.style.top = y+"px"; }
     }
   }
   function onResizeEnd(){
     if (resizeCtx) pushHistory();
     resizeCtx = null;
-    window.removeEventListener("mousemove", onResizeMove);
-    window.removeEventListener("mouseup", onResizeEnd);
-    window.removeEventListener("touchmove", onResizeMove);
-    window.removeEventListener("touchend", onResizeEnd);
+    window.removeEventListener("pointermove", onResizeMove);
+    window.removeEventListener("pointerup", onResizeEnd);
+    window.removeEventListener("pointercancel", onResizeEnd);
   }
 
   /* clicking empty pane area with text/image tool */
@@ -1467,6 +1473,12 @@ if ('serviceWorker' in navigator) {
         if (i>-1){ arr.splice(i,1); ed.selectedId=null; pushHistory(); renderEditorPanes(); }
       });
     }
+  });
+
+  /* ---------------- block refreshing ---------------- */
+  document.addEventListener("keydown", (e)=>{
+    const k = (e.key || "").toLowerCase();
+    if (k === "f5" || ((e.ctrlKey || e.metaKey) && k === "r")) e.preventDefault();
   });
 
   /* ---------------- init ---------------- */
